@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development node --env-file=.env.dev server",
+    "dev": "node --env-file=.env.dev server",
     "build": "npm run build:client && npm run build:server",
     "build:qa": "npm run build:client:qa && npm run build:server:qa",
-    "build:client": "vite build --mode prod --ssrManifest --outDir dist/client",
-    "build:server": "vite build --mode prod --ssr src/entry-server.ts --outDir dist/server",
-    "build:client:qa": "vite build --mode qa --ssrManifest --outDir dist/client",
-    "build:server:qa": "vite build --mode qa --ssr src/entry-server.ts --outDir dist/server",
-    "serve": "NODE_ENV=production node --env-file=.env.prod server",
-    "serve:qa": "NODE_ENV=production node --env-file=.env.qa server"
+    "build:client": "NODE_ENV=production vite build --mode prod --ssrManifest --outDir dist/client",
+    "build:server": "NODE_ENV=production vite build --mode prod --ssr src/entry-server.ts --outDir dist/server",
+    "build:client:qa": "NODE_ENV=production vite build --mode qa --ssrManifest --outDir dist/client",
+    "build:server:qa": "NODE_ENV=production vite build --mode qa --ssr src/entry-server.ts --outDir dist/server",
+    "serve": "node --env-file=.env.prod server",
+    "serve:qa": "node --env-file=.env.qa server"
   },
   "dependencies": {
     "@andrewcaires/cookie": "^1.0.4",
