@@ -1,22 +1,19 @@
-
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { noop } from "@andrewcaires/utils.js";
 import express from "express";
+import { existsSync, readFileSync } from "node:fs";
+import { createServer } from "vite";
+import compression from "compression";
+import serveStatic from "serve-static";
 
 // eslint-disable-next-line no-undef
-const port = process.env.PORT || 4000;
+const { cwd, env } = process ?? {};
 
-// eslint-disable-next-line no-undef
-const title = process.env.VITE_APP_TITLE || "App";
+const { NODE_ENV, VITE_PORT } = env ?? {};
 
-// eslint-disable-next-line no-undef
-const isProd = process.env.NODE_ENV === "production";
+const port = VITE_PORT ?? 4000;
+const production = NODE_ENV === "production";
 
-const createServer = async () => {
-
-  const indexProd = isProd ? readFileSync(resolve("./dist/client/index.html"), "utf-8") : "";
-
-  const manifest = isProd ? JSON.parse(readFileSync(resolve("./dist/client/.vite/ssr-manifest.json"), "utf-8")) : {};
+const main = async () => {
 
   const app = express();
 
@@ -25,14 +22,18 @@ const createServer = async () => {
    */
   let vite;
 
-  if (!isProd) {
+  if (production) {
 
-    vite = await (await import("vite")).createServer({
+    app.use(compression());
+    app.use("/", serveStatic("./dist/client", { index: false }));
+
+  } else {
+
+    vite = await createServer({
 
       base: "/",
-      // eslint-disable-next-line no-undef
-      root: process.cwd(),
-      logLevel: isProd ? "info" : "error",
+      root: cwd(),
+      logLevel: production ? "info" : "error",
       server: {
         middlewareMode: true,
         watch: {
@@ -46,43 +47,48 @@ const createServer = async () => {
     });
 
     app.use(vite.middlewares);
-
-  } else {
-
-    app.use((await import("compression")).default());
-
-    app.use("/", (await import("serve-static")).default(resolve("./dist/client"), { index: false }));
   }
+
+  const entry = "./dist/server/entry-server.js";
+  let render = production && existsSync(entry) ? (await import(entry)).render : noop;
+
+  let index = "./dist/client/index.html";
+  let template = production && existsSync(index) ? readFileSync(index, "utf-8") : "";
+
+  const json = "./dist/client/.vite/ssr-manifest.json";
+  let manifest = production && existsSync(json) ? JSON.parse(readFileSync(json, "utf-8")) : {};
 
   app.use("*", async (req, res) => {
 
     try {
 
-      const url = req.originalUrl;
+      const { originalUrl } = req;
 
-      let template, render;
+      if (!production && vite) {
 
-      if (!isProd) {
+        index = "./index.html";
 
-        template = readFileSync(resolve("index.html"), "utf-8");
-        template = await vite.transformIndexHtml(url, template);
+        if (existsSync(index)) {
+
+          template = readFileSync(index, "utf-8");
+        }
+
+        template = await vite.transformIndexHtml(originalUrl, template);
 
         render = (await vite.ssrLoadModule("./src/entry-server.ts")).render;
-
-      } else {
-
-        template = indexProd;
-
-        render = (await import("./dist/server/entry-server.js")).render;
       }
 
-      const [appHtml, initialState, preloadLinks] = await render(url, manifest);
+      const { appHtml, preloadLinks, initialState, headPayload } = await render(originalUrl, manifest);
 
-      const renderState = `<script id="initial_state">window.__INITIAL_STATE__=${JSON.stringify(initialState)};document.addEventListener("DOMContentLoaded",()=>{const s=document.getElementById("initial_state");s&&s?.parentElement?.removeChild(s);});</script>`;
+      const renderState = `<script id="initial_state">window.__INITIAL_STATE__=${initialState};document.addEventListener("DOMContentLoaded",()=>{const s=document.getElementById("initial_state");s&&s?.parentElement?.removeChild(s);});</script>`;
 
       let html = template;
 
-      html = html.replace("<!--app-title-->", title);
+      Object.entries(headPayload).forEach(([key, value]) => {
+
+        html = html.replace(`<!--${key}-->`, value);
+      });
+
       html = html.replace("<!--app-state-->", renderState);
       html = html.replace("<!--preload-links-->", preloadLinks);
       html = html.replace("<!--app-html-->", appHtml);
@@ -91,7 +97,7 @@ const createServer = async () => {
 
     } catch (e) {
 
-      vite && vite.ssrFixStacktrace(e);
+      vite?.ssrFixStacktrace(e);
 
       res.status(500).end(e.stack);
     }
@@ -100,11 +106,7 @@ const createServer = async () => {
   return { app, vite };
 };
 
-createServer().then(({ app }) => {
+main().then(({ app }) => {
 
-  app.listen(port, () => {
-
-    // eslint-disable-next-line no-undef
-    console.log(`Server running on http://localhost:${port}`);
-  });
+  app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
 });

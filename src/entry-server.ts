@@ -1,23 +1,28 @@
-import type { TypeObjectAny, TypeObjectFunction } from "@andrewcaires/utils.js";
+import { type TypeObjectAny, type TypeObjectFunction } from "@andrewcaires/utils.js";
+import { renderSSRHead } from "@unhead/ssr";
+import { uneval } from "devalue";
 import { renderToString } from "vue/server-renderer";
 
 import { createApp } from "./main";
 
 export const render = async (url: string, manifest: TypeObjectAny) => {
 
-  const { app, router, store } = createApp();
+  const { app, head, router, pinia } = createApp();
 
   await router.push(url);
   await router.isReady();
 
   const ctx: TypeObjectAny = {};
-  const html = await renderToString(app, ctx);
-
-  const initialState = store.state.value;
-
+  const appHtml = await renderToString(app, ctx);
   const preloadLinks = renderPreloadLinks(ctx.modules, manifest);
 
-  return [html, initialState, preloadLinks];
+  const headPayload = await renderSSRHead(head, {
+    omitLineBreaks: true,
+  });
+
+  const initialState = uneval(pinia.state.value);
+
+  return { appHtml, preloadLinks, headPayload, initialState };
 };
 
 const renderPreloadLinks = (modules: any, manifest: TypeObjectAny) => {
@@ -61,7 +66,7 @@ const renderPreloadLinks = (modules: any, manifest: TypeObjectAny) => {
 
 const renderPreloadTypes: TypeObjectFunction = {
 
-  "*": (file: string) => "",
+  "*": () => "",
 
   js: (file: string) => `<link rel="modulepreload" crossorigin href="${file}">`,
   css: (file: string) => `<link rel="stylesheet" href="${file}">`,

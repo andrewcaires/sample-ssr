@@ -5,20 +5,28 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onServerPrefetch, ref } from 'vue';
+import { useHead } from "@unhead/vue";
+import { storeToRefs } from "pinia";
 
-import { useDateTimeStore } from './stores';
+import { useDateTimeStore, useHeadStore } from "@/stores";
+import { APP_TITLE, onRender } from "@/utils";
 
 const datetime = useDateTimeStore();
+const head = useHeadStore();
 
-const test = ref(0);
+const { lang, title } = storeToRefs(head);
 
-onServerPrefetch(() => {
+useHead({
 
-  datetime.now();
+  title,
+
+  htmlAttrs: { lang },
+
+  titleTemplate: (title?: string) => `${title ? title + " - " : ""}${APP_TITLE}`,
+
 });
 
-onMounted(() => {
+onRender(() => {
 
   datetime.now();
 });

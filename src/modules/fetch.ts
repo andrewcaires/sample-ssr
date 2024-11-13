@@ -1,14 +1,16 @@
 import { Fetch } from "@andrewcaires/fetch";
 import { type App } from "vue";
 
+import { API_URL } from "@/utils";
+
 export const fetch = new Fetch({
 
-  url: import.meta.env.VITE_APP_URL,
+  url: API_URL,
   timeout: 20000,
 
 });
 
-export const install = (app: App) => {
+export const install = (app: App): void => {
 
   app.config.globalProperties.$fetch = fetch;
 };
@@ -17,7 +19,7 @@ export default install;
 
 declare module "@vue/runtime-core" {
 
-  interface ComponentCustomProperties {
+  export interface ComponentCustomProperties {
 
     $fetch: Fetch;
   }

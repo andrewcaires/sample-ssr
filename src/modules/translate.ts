@@ -1,13 +1,14 @@
 import { Translate } from "@andrewcaires/translate";
 import { type App } from "vue";
 
-import en from "../locales/en";
-import pt from "../locales/pt";
+import en from "@/locales/en";
+import ptBr from "@/locales/pt-br";
+import { APP_LANG } from "@/utils";
 
 Translate.options({
 
-  locale: "pt",
-  locales: { en, pt },
+  locale: APP_LANG,
+  locales: { en, "pt-br": ptBr },
 
 });
 
@@ -22,7 +23,7 @@ export default install;
 
 declare module "@vue/runtime-core" {
 
-  interface ComponentCustomProperties {
+  export interface ComponentCustomProperties {
 
     $t: typeof translate;
   }

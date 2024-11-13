@@ -7,7 +7,7 @@ Cookie.options({
 
 });
 
-export const install = (app: App) => {
+export const install = (app: App): void => {
 
   app.config.globalProperties.$cookie = Cookie;
 };
@@ -18,7 +18,7 @@ export default install;
 
 declare module "@vue/runtime-core" {
 
-  interface ComponentCustomProperties {
+  export interface ComponentCustomProperties {
 
     $cookie: Cookie;
   }

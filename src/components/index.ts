@@ -9,7 +9,7 @@ export const install = (app: App) => {
 
 declare module "vue" {
 
-  interface GlobalComponents {
+  export interface GlobalComponents {
 
     HelloWorld: typeof HelloWorld,
 

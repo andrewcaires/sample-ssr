@@ -1,20 +1,17 @@
-import "./assets/main.scss";
-
-import { createPinia } from "pinia";
 import { createApp as _createApp, createSSRApp, type App as _App } from "vue";
 
-import utils from "./utils";
+import App from "@/App.vue";
+import components from "@/components";
+import modules, { head, pinia, router } from "@/modules";
+import { DEV, SSR } from "@/utils";
 
-import App from "./App.vue";
-import { createRouter } from "./router";
-
-import components from "./components";
+import "./assets/main.scss";
 
 export const createApp = () => {
 
   let app: _App;
 
-  if (import.meta.env.DEV && !import.meta.env.SSR) {
+  if (DEV && !SSR) {
 
     app = _createApp(App);
 
@@ -23,16 +20,9 @@ export const createApp = () => {
     app = createSSRApp(App);
   }
 
-  app.use(utils);
-
-  const router = createRouter();
-
-  const store = createPinia();
-  app.use(store);
-
-  app.use(router);
+  app.use(modules);
 
   app.use(components);
 
-  return { app, router, store };
+  return { app, head, router, pinia };
 };
