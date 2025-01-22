@@ -1,16 +1,17 @@
 import js from "@eslint/js";
 import skipFormattingConfig from "@vue/eslint-config-prettier/skip-formatting";
-import vueTsEslintConfig from "@vue/eslint-config-typescript";
+import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from "eslint-plugin-vue";
 import ts from "typescript-eslint";
 
-export default [
+export default defineConfigWithVueTs(
 
   js.configs.recommended,
   ...ts.configs.recommended,
+
   skipFormattingConfig,
-  ...pluginVue.configs["flat/essential"],
-  ...vueTsEslintConfig(),
+  pluginVue.configs['flat/essential'],
+  vueTsConfigs.recommended,
 
   {
     "files": ["src/**/*"],
@@ -26,6 +27,9 @@ export default [
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-unused-vars": "off",
+      "vue/no-unused-vars": ["warn", {
+        "ignorePattern": "^_"
+      }],
     },
   },
   {
@@ -35,4 +39,4 @@ export default [
     ],
   },
 
-];
+);
