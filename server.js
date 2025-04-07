@@ -58,7 +58,7 @@ const main = async () => {
   const json = "./dist/client/.vite/ssr-manifest.json";
   let manifest = production && existsSync(json) ? JSON.parse(readFileSync(json, "utf-8")) : {};
 
-  app.use("*", async (req, res) => {
+  app.use("*path", async (req, res) => {
 
     try {
 
