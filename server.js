@@ -10,7 +10,7 @@ const { cwd, env } = process ?? {};
 
 const { NODE_ENV, VITE_PORT } = env ?? {};
 
-const port = VITE_PORT ?? 4000;
+const port = parseInt(VITE_PORT ?? "4000");
 const production = NODE_ENV === "production";
 
 const main = async () => {
@@ -40,7 +40,7 @@ const main = async () => {
           usePolling: true,
           interval: 100,
         },
-        hmr: { port: 3010 },
+        hmr: { port: port + 100 },
       },
       appType: "custom",
 

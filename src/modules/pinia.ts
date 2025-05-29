@@ -3,9 +3,9 @@ import { createPinia } from "pinia";
 
 import { isClient } from "@/utils";
 
-export const pinia = createPinia();
-
 export const install = (app: App): void => {
+
+  const pinia = createPinia();
 
   if (isClient) {
 

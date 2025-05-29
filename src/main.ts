@@ -1,8 +1,9 @@
 import { createApp as _createApp, createSSRApp, type App as _App } from "vue";
+import { createPinia, getActivePinia } from "pinia";
 
 import App from "@/App.vue";
 import components from "@/components";
-import modules, { head, pinia, router } from "@/modules";
+import modules, { head, router } from "@/modules";
 import { DEV, SSR } from "@/utils";
 
 import "./assets/main.scss";
@@ -23,6 +24,15 @@ export const createApp = () => {
   app.use(modules);
 
   app.use(components);
+
+  let pinia = getActivePinia();
+
+  if (!pinia) {
+
+    pinia = createPinia();
+
+    app.use(pinia);
+  }
 
   return { app, head, router, pinia };
 };
